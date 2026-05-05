@@ -1,0 +1,35 @@
+# 个人写作 Skill 风格配置
+# 复制为 style.yaml 并替换成你自己的账号信息
+
+name: "我的公众号"
+topics:
+  - "AI 工具"
+  - "效率"
+  - "个人经验"
+
+tone: "真诚、口语化、不过度端着"
+voice: "像朋友认真聊天，不像老师上课"
+content_style: "经验+干货"
+author: "你的名字"
+
+# 单人格优先，首版默认 friend-voice
+writing_persona: "friend-voice"
+
+# 公众号排版弱实现只依赖一个默认主题
+wechat_theme: "professional-clean"
+theme: "professional-clean"
+
+# 不想出现在文里的表达
+blacklist:
+  - "赋能"
+  - "底层逻辑"
+  - "闭环"
+  - "抓手"
+
+# 可选：对标账号库，只借结构和手法，不直接模仿内容
+reference_accounts:
+  - "ai-daliu"
+  - "ai-info-gap"
+
+# 可选：给封面或整体视觉一个方向
+cover_style: "简洁、克制、自然，不要营销海报感"

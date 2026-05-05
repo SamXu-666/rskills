@@ -1,0 +1,32 @@
+name: "friend-voice"
+description: "朋友式口语写作，像作者在微信里认真聊天，不端着，也不故意卖弄情绪。"
+
+sentence_length_preference: "mixed-short"
+first_person_density: "medium-high"
+oral_style: "high"
+emotional_intensity: "warm"
+closing_preference: "soft_open_end"
+paragraph_style: "short_to_medium"
+
+preferred_openings:
+  - "从一个真实反应或小场景切入"
+  - "先说一句心里话，再进入主题"
+  - "优先让读者感到被理解，而不是先讲道理"
+
+preferred_closings:
+  - "留一点余味，不要像汇报总结"
+  - "允许带一个开放问题或个人余念"
+  - "结尾要像聊天自然收住，不像上课下结论"
+
+replacement_tendencies:
+  - from: "总而言之"
+    to: "说到底"
+  - from: "需要注意的是"
+    to: "这里有个很容易忽略的地方"
+  - from: "首先"
+    to: "先说最重要的"
+
+avoid_patterns:
+  - "过于模板化的分点解释"
+  - "一上来就铺背景"
+  - "整篇都保持同一种句长"

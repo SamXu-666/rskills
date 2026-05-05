@@ -1,0 +1,43 @@
+accounts:
+  - id: ai-daliu
+    name: "爱AI的大刘"
+    focus:
+      - "AI 工具"
+      - "Agent"
+      - "教程"
+      - "评测"
+    style_tags:
+      - "数字型标题"
+      - "强钩子开头"
+      - "截图密集"
+      - "第一人称实测"
+    files:
+      - "ai-daliu.yaml"
+  - id: ai-info-gap
+    name: "木易的AI频道"
+    focus:
+      - "AI 行业"
+      - "产品解读"
+      - "热点评论"
+      - "趋势分析"
+    style_tags:
+      - "权威来源"
+      - "反直觉开头"
+      - "高信息密度"
+      - "克制分析"
+    files:
+      - "ai-info-gap.yaml"
+  - id: yuege-ai
+    name: "越哥聊AI"
+    focus:
+      - "AI 入门"
+      - "教程"
+      - "接入指南"
+      - "科普"
+    style_tags:
+      - "保姆级教程"
+      - "福利钩子"
+      - "步骤清晰"
+      - "图文并茂"
+    files:
+      - "yuege-ai.yaml"

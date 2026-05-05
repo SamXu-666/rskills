@@ -1,0 +1,50 @@
+id: yuege-ai
+name: "越哥聊AI"
+positioning: "AI 入门教程 + 产品接入指南 + 行业科普"
+audience:
+  - "AI 新手"
+  - "普通职场人"
+  - "想快速上手的人"
+
+best_for:
+  frameworks:
+    - tutorial
+    - list
+  content_styles:
+    - "教程"
+    - "科普"
+    - "入门"
+
+signals:
+  title_patterns:
+    - "产品名 + 上线/接入 + 详细教程"
+    - "万字长文 + 全面讲透"
+    - "新功能发布 + 教程承诺"
+  opening_patterns:
+    - "直接宣布一个新变化"
+    - "先说很多人没意识到的变化"
+    - "用‘现在才是真正开始’之类的判断开场"
+  structure_patterns:
+    - "步骤式讲解"
+    - "适合列表、表格、流程图"
+    - "每段都偏解释型，照顾新手"
+  closing_patterns:
+    - "福利领取"
+    - "推荐相关阅读"
+    - "引导关注系列内容"
+
+borrow_rules:
+  do:
+    - "可以借‘手把手’的教程组织方式"
+    - "可以借‘读完就能上手’这种读者收益表达"
+  avoid:
+    - "不要直接套用福利诱导句式"
+    - "不要把文章写成纯运营引流页"
+
+snippet_examples:
+  title_angles:
+    - "新功能 + 详细接入教程"
+    - "把复杂话题改写成入门友好版本"
+  opening_angles:
+    - "先点明新变化，再解释为什么值得学"
+    - "适合从‘很多人还没意识到’切入"

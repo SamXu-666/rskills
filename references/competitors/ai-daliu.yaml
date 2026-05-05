@@ -1,0 +1,49 @@
+id: ai-daliu
+name: "爱AI的大刘"
+positioning: "AI Agent 工具实测 + 保姆级教程"
+audience:
+  - "开发者"
+  - "技术爱好者"
+  - "想用 AI 提效的职场人"
+
+best_for:
+  frameworks:
+    - list
+    - tutorial
+  content_styles:
+    - "干货"
+    - "教程"
+    - "工具推荐"
+
+signals:
+  title_patterns:
+    - "大数字 + 精选承诺"
+    - "情绪词 + 工具名 + 明确卖点"
+    - "保姆级 / 手把手 / 30分钟"
+  opening_patterns:
+    - "先抛大数字，再用夸张换算制造冲击"
+    - "直接说自己实测后的结论"
+    - "先提出共识，再反转问题真正所在"
+  structure_patterns:
+    - "编号式小节"
+    - "每节一句话点题"
+    - "截图或例子跟着段落走"
+  closing_patterns:
+    - "总结后给明确 CTA"
+    - "适合做系列导流"
+
+borrow_rules:
+  do:
+    - "可以借数字型标题、编号式结构、强节奏教程写法"
+    - "可以借‘我实测后留下这些’这种可信度建构方式"
+  avoid:
+    - "不要直接复制原账号的具体标题"
+    - "不要为了冲击力把语气写成营销号"
+
+snippet_examples:
+  title_angles:
+    - "数字前置，快速告诉读者筛选结果"
+    - "保姆级承诺，降低新手心理门槛"
+  opening_angles:
+    - "用一个大数字或极端时间换算切开场"
+    - "先抛实测结论，再解释为什么"

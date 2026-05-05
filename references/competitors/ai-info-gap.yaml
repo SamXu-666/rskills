@@ -1,0 +1,49 @@
+id: ai-info-gap
+name: "木易的AI频道"
+positioning: "AI 行业深度分析 + 产品解读 + 热点速评"
+audience:
+  - "产品经理"
+  - "技术决策者"
+  - "关注 AI 行业变化的人"
+
+best_for:
+  frameworks:
+    - opinion
+    - recap
+  content_styles:
+    - "观点"
+    - "观察"
+    - "行业分析"
+
+signals:
+  title_patterns:
+    - "热点事件 + 反直觉判断"
+    - "权威来源 + 关键变化总结"
+    - "产品更新 + 行业影响"
+  opening_patterns:
+    - "先给一个反直觉结论"
+    - "用热搜或官方信息做权威开场"
+    - "用‘你以前以为…其实…’切开认知差"
+  structure_patterns:
+    - "自然段推进，不强依赖编号"
+    - "高密度解释 + 对比"
+    - "适合穿插引用和表格"
+  closing_patterns:
+    - "克制收束"
+    - "一句判断收尾，不拖长总结"
+
+borrow_rules:
+  do:
+    - "可以借‘权威来源 + 自己的判断’的结构"
+    - "可以借反直觉开头和对比分析方式"
+  avoid:
+    - "不要伪装成行业内幕作者"
+    - "不要复制对方特有的身份背书口吻"
+
+snippet_examples:
+  title_angles:
+    - "先指出共识可能过时，再给新的判断"
+    - "用官方更新做引子，而不是空发观点"
+  opening_angles:
+    - "先破一个常见认知，再立自己的判断"
+    - "把新闻事实和个人解读贴得很近"
