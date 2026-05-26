@@ -9,8 +9,10 @@ Usage:
 """
 
 import argparse
+import io
 import sys
 import webbrowser
+import requests
 from pathlib import Path
 
 import yaml
@@ -19,6 +21,7 @@ from converter import WeChatConverter, preview_html
 from theme import load_theme, list_themes
 from wechat_api import get_access_token, upload_image, upload_thumb
 from publisher import create_draft, create_image_post
+from verify_publish import verify
 
 # Config file search order
 CONFIG_PATHS = [
@@ -66,6 +69,7 @@ def cmd_publish(args):
     """Convert, upload images, and create WeChat draft."""
     cfg = load_config()
     wechat_cfg = cfg.get("wechat", {})
+    server_url = cfg.get("server_url", "")
 
     # Resolve from CLI args → config.yaml fallback
     appid = args.appid or wechat_cfg.get("appid")
@@ -73,16 +77,28 @@ def cmd_publish(args):
     theme_name = args.theme or cfg.get("theme", "professional-clean")
     author = args.author or wechat_cfg.get("author")
 
+    # 服务器模式：生成本地 HTML → 调服务器 API 发布
+    if server_url:
+        _publish_via_server(args, cfg, theme_name, author, server_url)
+        return
+
+    # 直连模式：需要 appid/secret
     if not appid or not secret:
-        print("Error: --appid and --secret required (or set in config.yaml)", file=sys.stderr)
+        print("Error: --appid and --secret required (or set config.yaml with appid/secret or server_url)", file=sys.stderr)
         sys.exit(1)
 
     theme = load_theme(theme_name)
     converter = WeChatConverter(theme=theme)
     result = converter.convert_file(args.input)
 
-    print(f"Title: {result.title}")
-    print(f"Digest: {result.digest}")
+    # === VERIFICATION GATE ===
+    _run_verification_gate(args)
+    # === END VERIFICATION GATE ===
+
+    clean_t = result.title.replace('¥','').replace('$','').strip()
+    clean_d = result.digest.replace('¥','').replace('$','').strip()
+    print(f"Title: {clean_t}")
+    print(f"Digest: {clean_d}")
     print(f"Images found: {len(result.images)}")
 
     # Get access token
@@ -132,6 +148,193 @@ def cmd_publish(args):
     )
 
     print(f"\nDraft created! media_id: {draft.media_id}")
+    _update_simulator(args, theme_name)
+
+
+def _run_verification_gate(args):
+    """Run proof + fingerprint verification before publish.
+
+    Searches for {article}.proof.json alongside the article.
+    HARD failures block publish unless --skip-verify is set.
+    """
+    # Fix UnicodeEncodeError on Windows GBK terminals
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+    proof_path = Path(args.input).with_suffix(".proof.json")
+
+    if not proof_path.exists():
+        print("\n⚠️  No proof file found — publish without verification.")
+        print("   (Run the full JIT pipeline to generate proof file for safety.)")
+        return
+
+    result = verify(Path(args.input))
+
+    if result.missing_stages:
+        print(f"\n📋 Missing stages: {', '.join(result.missing_stages)}")
+    if result.proof_stages:
+        print(f"✅ Proven stages: {', '.join(result.proof_stages)}")
+
+    if result.hard_failures:
+        print(f"\n❌ PUBLISH BLOCKED — {len(result.hard_failures)} HARD failure(s):")
+        for f in result.hard_failures:
+            print(f"  🔴 {f}")
+
+    if result.soft_warnings:
+        print(f"\n⚠️  Warnings ({len(result.soft_warnings)}):")
+        for w in result.soft_warnings:
+            print(f"  🟡 {w}")
+
+    if not result.passed:
+        if getattr(args, 'skip_verify', False):
+            print("\n⚠️  --skip-verify used, publishing anyway despite failures.")
+        else:
+            print("\n⛔ Verification FAILED. Publish blocked.")
+            print("   Fix the issues above, or use --skip-verify for emergency bypass.")
+            sys.exit(1)
+    else:
+        print(f"\n✅ Verification passed ({len(result.proof_stages)} stages proven)")
+
+
+def _update_simulator(args, theme_name):
+    """发布后自动更新 wechat-sim 模拟器"""
+    import subprocess as sp
+    sim_dir = Path(r'D:\桌面\jj\公众号\wechat-sim')
+    if not sim_dir.exists(): return
+    try:
+        from converter import WeChatConverter
+        from theme import load_theme
+        converter = WeChatConverter(theme=load_theme(theme_name))
+        result = converter.convert_file(args.input)
+        html = result.html
+        import re
+        html = re.sub(r'^<section[^>]*>', '', html)
+        html = re.sub(r'</section>$', '', html)
+        # Auto-insert byline after first paragraph if missing
+        if '<center><small>' not in html:
+            first_p = re.search(r'(<p[^>]*>.*?</p>)', html)
+            if first_p:
+                pos = first_p.end()
+                byline = '<center><small>— 第二能力计划 · 肉松 —</small></center>'
+                html = html[:pos] + '\n' + byline + '\n' + html[pos:]
+        aid = Path(args.input).stem.replace(' ', '-').lower()[:20]
+        body_path = sim_dir / f'_body_{aid}.html'
+        with open(body_path, 'w', encoding='utf-8') as f:
+            f.write(html)
+        build_py = sim_dir / 'build.py'
+        if build_py.exists():
+            sp.run(['python', str(build_py)], capture_output=True, timeout=15)
+            print(f"  Simulator updated: {aid}")
+    except Exception as e:
+        print(f"  Simulator skip: {e}")
+
+
+def _publish_via_server(args, cfg, theme_name, author, server_url):
+    """通过服务器 API 发布：生成本地 HTML → 上传图片 → 调服务器创建草稿"""
+    theme = load_theme(theme_name)
+    converter = WeChatConverter(theme=theme)
+    result = converter.convert_file(args.input)
+
+    # === VERIFICATION GATE ===
+    _run_verification_gate(args)
+    # === END VERIFICATION GATE ===
+
+    print(f"[Server Mode] Server: {server_url}")
+    import unicodedata
+    clean_title = result.title.replace('¥','').replace('$','').replace('€','').strip()
+    clean_digest = result.digest.replace('¥','').replace('$','').replace('€','').strip()
+    try:
+        print(f"Title: {clean_title}")
+    except UnicodeEncodeError:
+        print(f"Title: {clean_title.encode('gbk', errors='replace').decode('gbk')}")
+    try:
+        print(f"Digest: {clean_digest}")
+    except UnicodeEncodeError:
+        print(f"Digest: {clean_digest.encode('gbk', errors='replace').decode('gbk')}")
+    print(f"Images found: {len(result.images)}")
+
+    md_dir = Path(args.input).resolve().parent
+    html = result.html
+
+    # 上传图片到微信（通过服务器）
+    for img_src in result.images:
+        if img_src.startswith(("http://", "https://")):
+            print(f"  Skip remote: {img_src[:80]}...")
+            continue
+
+        img_path = Path(img_src)
+        if not img_path.is_absolute():
+            if not img_path.exists():
+                img_path = md_dir / img_src
+
+        if img_path.exists():
+            print(f"  Upload image via server: {img_src}")
+            try:
+                with open(img_path, "rb") as f:
+                    resp = requests.post(
+                        f"{server_url}/api/wechat/upload-image",
+                        files={"file": (img_path.name, f)},
+                        timeout=30,
+                    )
+                if resp.status_code == 200:
+                    wechat_url = resp.json().get("url", "")
+                    if wechat_url:
+                        html = html.replace(img_src, wechat_url)
+                        print(f"    -> {wechat_url[:80]}...")
+                    else:
+                        print(f"    Error: {resp.json()}")
+                else:
+                    print(f"    Error: {resp.status_code} {resp.text[:100]}")
+            except Exception as e:
+                print(f"    Error: {e}")
+        else:
+            print(f"  Not found: {img_src}")
+
+    # 上传封面图（如果有）
+    cover_url = ""
+    if args.cover:
+        cover_path = Path(args.cover)
+        if cover_path.exists():
+            print(f"  Upload cover via server: {args.cover}")
+            try:
+                with open(cover_path, "rb") as f:
+                    resp = requests.post(
+                        f"{server_url}/api/wechat/upload-cover",
+                        files={"file": (cover_path.name, f)},
+                        timeout=30,
+                    )
+                if resp.status_code == 200:
+                    cover_url = resp.json().get("url", "")
+                    print(f"    -> {cover_url}")
+            except Exception as e:
+                print(f"    Cover upload error: {e}")
+
+    # 调服务器创建草稿
+    title = args.title or result.title or Path(args.input).stem
+    digest = args.digest or result.digest
+
+    payload = {
+        "title": title,
+        "html": html,
+        "digest": digest,
+        "author": author or "",
+    }
+
+    print(f"\n  Creating draft via server...")
+    try:
+        resp = requests.post(
+            f"{server_url}/api/wechat/publish",
+            json=payload,
+            timeout=30,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            print(f"\nDraft created! media_id: {data.get('media_id', '?')}")
+            # Auto-update simulator
+            _update_simulator(args, theme_name)
+        else:
+            print(f"Error: {resp.status_code} {resp.text[:300]}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 def cmd_themes(args):
@@ -461,6 +664,7 @@ def main():
     p_publish.add_argument("--title", help="Override article title")
     p_publish.add_argument("--author", default=None, help="Article author")
     p_publish.add_argument("--digest", default=None, help="Override article digest (≤120 UTF-8 bytes)")
+    p_publish.add_argument("--skip-verify", action="store_true", help="Skip proof verification (emergency bypass)")
 
     # themes
     sub.add_parser("themes", help="List available themes")
