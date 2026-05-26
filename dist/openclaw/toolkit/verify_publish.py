@@ -141,8 +141,11 @@ STAGE_PROOF_CHECKS: list = [
 
     # Stage ⑥ — Write
     ("06_write", "taste_confirmed", True, "SOFT"),
-    ("06_write", "title_chosen", True, "HARD"),
     ("06_write", "experience_injected", True, "SOFT"),
+
+    # Stage ⑥c — Title blind review (Agent B)
+    ("06c_title_review", "agent_b_reviewed", True, "HARD"),
+    ("06c_title_review", "title_chosen", True, "HARD"),
 
     # Stage ⑦ — Hook scan
     ("07_hook_scan", "hook_scan_done", True, "HARD"),
@@ -162,6 +165,9 @@ STAGE_NUMERIC_CHECKS: list = [
     ("06_write", "cn_chars", 3000, "HARD"),
     ("06_write", "title_candidates", 5, "HARD"),
     ("06_write", "formula_count", 5, "SOFT"),
+    ("06c_title_review", "reviewed_count", 5, "HARD"),
+    ("06c_title_review", "eliminated_count", 3, "HARD"),
+    ("06c_title_review", "survivors_count", 2, "HARD"),
     ("07_hook_scan", "hook_count", 6, "HARD"),
     ("08_cold_read", "cn_chars", 2500, "HARD"),
     ("08_cold_read", "ai_ratio", 25, "HARD"),  # ai_ratio must be BELOW 25%
@@ -169,7 +175,7 @@ STAGE_NUMERIC_CHECKS: list = [
 ]
 
 # Required stages that MUST be completed (missing = HARD fail)
-REQUIRED_STAGES = ["05_skeleton", "06_write", "07_hook_scan", "08_cold_read"]
+REQUIRED_STAGES = ["05_skeleton", "06_write", "06c_title_review", "07_hook_scan", "08_cold_read"]
 
 
 # ---------------------------------------------------------------------------
