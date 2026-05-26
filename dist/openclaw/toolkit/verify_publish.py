@@ -109,6 +109,34 @@ def _check_text_pattern(article: str, fp: dict) -> tuple:
     return False, f"Pattern not matched: {pattern}"
 
 
+def _check_pronoun_ratio_max(article: str, fp: dict) -> tuple:
+    """Check '我'/'你' ratio — evidence that CP0 subject check ran.
+
+    Ratio = count('我') / count('你' + '你的AI' + '读者').
+    If '我' dominates, the skeleton's subject check was skipped.
+    """
+    max_ratio = fp.get("value", 0.5)
+    wo = article.count("我")
+    ni = article.count("你") + article.count("你的 AI") + article.count("读者")
+    if ni == 0:
+        return wo <= 5, f"'我' count {wo} with zero '你/读者' references"
+    ratio = wo / ni
+    if ratio <= max_ratio:
+        return True, ""
+    return False, f"'我'/'你' ratio {ratio:.2f} > max {max_ratio} (CP0 subject check likely skipped)"
+
+
+def _check_text_contains_any(article: str, fp: dict) -> tuple:
+    """Check article contains at least one of the listed snippets."""
+    candidates = fp.get("value", [])
+    if not isinstance(candidates, list):
+        candidates = [candidates]
+    for c in candidates:
+        if c in article:
+            return True, ""
+    return False, f"None of {len(candidates)} required snippets found in article"
+
+
 def _proof_value(article: str, fp: dict) -> tuple:
     """Proof-value checks are validated against the proof JSON directly
     (not article content), so this handler is a no-op at fingerprint level.
@@ -124,6 +152,8 @@ CHECK_HANDLERS = {
     "section_count_min": _check_section_count_min,
     "text_pattern": _check_text_pattern,
     "proof_value": _proof_value,
+    "pronoun_ratio_max": _check_pronoun_ratio_max,
+    "text_contains_any": _check_text_contains_any,
 }
 
 
@@ -141,7 +171,7 @@ STAGE_PROOF_CHECKS: list = [
 
     # Stage ⑥ — Write
     ("06_write", "taste_confirmed", True, "SOFT"),
-    ("06_write", "experience_injected", True, "SOFT"),
+    # experience_injected is now verified by text_contains_any fingerprint (see stage template)
 
     # Stage ⑥c — Title blind review (Agent B)
     ("06c_title_review", "agent_b_reviewed", True, "HARD"),
