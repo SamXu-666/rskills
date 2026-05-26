@@ -162,9 +162,9 @@ STAGE_NUMERIC_CHECKS: list = [
     ("06_write", "cn_chars", 3000, "HARD"),
     ("06_write", "title_candidates", 5, "HARD"),
     ("06_write", "formula_count", 5, "SOFT"),
-    ("07_hook_scan", "hook_count", 6, "SOFT"),
+    ("07_hook_scan", "hook_count", 6, "HARD"),
     ("08_cold_read", "cn_chars", 2500, "HARD"),
-    ("08_cold_read", "ai_ratio", 25, "SOFT"),  # ai_ratio < 25
+    ("08_cold_read", "ai_ratio", 25, "HARD"),  # ai_ratio must be BELOW 25%
     ("09_publish", "tags_count", 5, "SOFT"),
 ]
 
